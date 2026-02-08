@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <optional>
 
 #include "../../usecase/FlightPlanService.hpp"
 #include "../../domain/FlightPlan.hpp"
@@ -28,6 +29,19 @@ static std::string readLine(const std::string& prompt) {
     return s;
 }
 
+static std::optional<std::string> readFlightNumber() {
+    while (true) {
+        std::string s = readLine("Please enter flight number (AA123/AA1234), or :q to cancel: ");
+        if (s == ":q") {
+            return std::nullopt;
+        }
+        if (domain::isValidFlightNumber(s)) {
+            return s;
+        }
+        std::cout << "Invalid flight number format. Expected AA123 or AA1234.\n";
+    }
+}
+
 static void printFlight(const domain::FlightPlan& p) {
     std::cout
         << "Flight: " << p.flightNumber << "\n"
@@ -37,9 +51,13 @@ static void printFlight(const domain::FlightPlan& p) {
         << "  Dep: " << p.departureTime << "  Arr: " << p.arrivalTime << "\n";
 }
 
-static domain::FlightPlan inputFlightPlan() {
+static std::optional<domain::FlightPlan> inputFlightPlan() {
     domain::FlightPlan p;
-    p.flightNumber = readLine("Please enter flight number: ");
+    auto flightNo = readFlightNumber();
+    if (!flightNo.has_value()) {
+        return std::nullopt;
+    }
+    p.flightNumber = *flightNo;
     p.airlineCode = readLine("Please enter airline code: ");
     p.aircraftType = readLine("Please enter aircraft type: ");
     p.aircraftRegistration = readLine("Please enter aircraft registration: ");
@@ -72,15 +90,23 @@ int MenuCli::run() {
         }
 
         if (choice == 1) {
-            domain::FlightPlan p = inputFlightPlan();
-            bool ok = service_.create(p);
+            auto p = inputFlightPlan();
+            if (!p.has_value()) {
+                std::cout << "Canceled.\n";
+                continue;
+            }
+            bool ok = service_.create(*p);
             std::cout << (ok ? "Created.\n" : "Failed (invalid input or duplicate).\n");
             continue;
         }
 
         if (choice == 2) {
-            std::string flightNo = readLine("Please enter flight number: ");
-            auto res = service_.get(flightNo);
+            auto flightNo = readFlightNumber();
+            if (!flightNo.has_value()) {
+                std::cout << "Canceled.\n";
+                continue;
+            }
+            auto res = service_.get(*flightNo);
             if (!res.has_value()) {
                 std::cout << "NotFound.\n";
             } else {
@@ -90,15 +116,23 @@ int MenuCli::run() {
         }
 
         if (choice == 3) {
-            domain::FlightPlan p = inputFlightPlan();
-            bool ok = service_.update(p);
+            auto p = inputFlightPlan();
+            if (!p.has_value()) {
+                std::cout << "Canceled.\n";
+                continue;
+            }
+            bool ok = service_.update(*p);
             std::cout << (ok ? "Updated.\n" : "Failed (invalid input or not found).\n");
             continue;
         }
 
         if (choice == 4) {
-            std::string flightNo = readLine("Please enter flight number: ");
-            bool ok = service_.remove(flightNo);
+            auto flightNo = readFlightNumber();
+            if (!flightNo.has_value()) {
+                std::cout << "Canceled.\n";
+                continue;
+            }
+            bool ok = service_.remove(*flightNo);
             std::cout << (ok ? "Deleted.\n" : "NotFound.\n");
             continue;
         }

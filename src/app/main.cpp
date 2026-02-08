@@ -8,5 +8,7 @@ int main() {
     usecase::FlightPlanService service(repo);
 
     adapters::cli::MenuCli cli(service);
-    return cli.run();
+    cli.run();
+
+    return 0;
 }

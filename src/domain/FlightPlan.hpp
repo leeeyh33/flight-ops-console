@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include <cctype>
 
 namespace domain {
 
@@ -25,10 +26,27 @@ struct FlightPlan {
     std::string arrivalTime;           // e.g., 2026-02-07T11:35
 };
 
+inline bool isValidFlightNumber(const std::string& s) {
+    // Format: AA123 or AA1234
+    if (s.size() != 5 && s.size() != 6) {
+        return false;
+    }
+    if (!std::isalpha(static_cast<unsigned char>(s[0])) ||
+        !std::isalpha(static_cast<unsigned char>(s[1]))) {
+        return false;
+    }
+    for (size_t i = 2; i < s.size(); ++i) {
+        if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Basic validation for v0.
 // Keep it minimal; deeper validation rules can be added later.
 inline bool isValidBasic(const FlightPlan& p) {
-    return !p.flightNumber.empty()
+    return isValidFlightNumber(p.flightNumber)
         && !p.airlineCode.empty()
         && !p.aircraftType.empty()
         && !p.aircraftRegistration.empty()

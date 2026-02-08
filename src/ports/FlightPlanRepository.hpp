@@ -13,6 +13,7 @@ namespace ports {
 // It does NOT define how data is stored (memory, file, database, etc.).
 class FlightPlanRepository {
 public:
+    FlightPlanRepository() = default;
     virtual ~FlightPlanRepository() = default;
 
     // Create a new flight.

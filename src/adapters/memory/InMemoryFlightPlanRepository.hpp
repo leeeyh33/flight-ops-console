@@ -14,6 +14,9 @@ namespace adapters::memory {
 // Data is stored in RAM and will be lost when the program exits.
 class InMemoryFlightPlanRepository : public ports::FlightPlanRepository {
 public:
+    InMemoryFlightPlanRepository() = default;
+    ~InMemoryFlightPlanRepository() override = default;
+
     bool create(const domain::FlightPlan& plan) override;
 
     std::optional<domain::FlightPlan>
